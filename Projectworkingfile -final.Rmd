@@ -1,0 +1,884 @@
+---
+title: "Group13projectteam"
+author: "Puja Mishra"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+# 1. Data Preparation
+```{r}
+df <- read.csv("D:/Applied Biostats/Pregnancy During the COVID-19 Pandemic (1).csv")
+```
+
+
+```{r}
+total_rows <- nrow(df)
+total_columns <- ncol(df)
+
+# Printing the results
+print(paste("Total number of rows in the dataset:", total_rows))
+print(paste("Total number of columns in the dataset:", total_columns))
+
+```
+
+
+```{r}
+df<-read.csv("D:/Applied Biostats/Pregnancy During the COVID-19 Pandemic (1).csv")
+
+# Count null values in the column 'Maternal_Age'
+null_count <- sum(is.na(df$Maternal_Age))
+
+# Print the result
+print(paste("Number of null values in the column 'Maternal_Age':", null_count))
+
+```
+
+```{r}
+# Calculate the median of the Maternal_Age column
+median_age <- median(df$Maternal_Age, na.rm = TRUE)
+median_age
+
+# Replace null values with the mean
+df$Maternal_Age[is.na(df$Maternal_Age)] <- median_age
+head(df)
+
+```
+
+```{r}
+# Count null values in the column 'Maternal_Age'
+null_count <- sum(is.na(df$Maternal_Age))
+
+# Print the result
+print(paste("Number of null values in the column 'Maternal_Age':", null_count))
+
+```
+
+
+```{r}
+
+maternal_age <- df$Maternal_Age
+
+
+# Remove NA values to avoid computation errors
+maternal_age_clean <- na.omit(maternal_age)
+# Create a boxplot and add a title
+boxplot(maternal_age_clean, main="Boxplot for Maternal Age", ylab="Age")
+
+
+# Calculate the interquartile range (IQR)
+IQR_values <- IQR(df$Maternal_Age, na.rm = TRUE)
+
+# Calculate the bounds for outliers
+lower_bound <- quantile(df$Maternal_Age, 0.25, na.rm = TRUE) - 1.5 * IQR_values
+upper_bound <- quantile(df$Maternal_Age, 0.75, na.rm = TRUE) + 1.5 * IQR_values
+
+# Identify the outliers
+outliers <- df$Maternal_Age[df$Maternal_Age < lower_bound | df$Maternal_Age > upper_bound]
+
+# Calculate the percentage of outliers
+percentage_outliers <- length(outliers) / length(df$Maternal_Age[!is.na(df$Maternal_Age)]) * 100
+
+# Print the percentage of outliers
+print(paste("Percentage of outliers:", percentage_outliers))
+
+
+```
+
+
+```{r}
+# Calculate the interquartile range (IQR)
+Q1 <- quantile(df$Maternal_Age, 0.25, na.rm = TRUE)
+Q3 <- quantile(df$Maternal_Age, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+
+# Define the cutoffs for capping
+cutoff_low <- Q1 - 1.5 * IQR
+cutoff_high <- Q3 + 1.5 * IQR
+
+# Cap the outliers
+df$Maternal_Age_Capped <- ifelse(df$Maternal_Age < cutoff_low, cutoff_low, 
+                                  ifelse(df$Maternal_Age > cutoff_high, cutoff_high, 
+                                         df$Maternal_Age))
+head(df)
+```
+
+
+```{r}
+#8
+maternal_age <- df$Maternal_Age_Capped  
+
+# Calculate the summary statistics
+max_value <- max(maternal_age)
+min_value <- min(maternal_age)
+upper_quartile <- quantile(maternal_age, 0.75)
+median_value <- median(maternal_age)
+lower_quartile <- quantile(maternal_age, 0.25)
+
+# Print the results
+cat("Maximum: ", max_value, "\n",
+    "Minimum: ", min_value, "\n",
+    "Upper Quartile: ", upper_quartile, "\n",
+    "Median: ", median_value, "\n",
+    "Lower Quartile: ", lower_quartile, "\n")
+
+```
+
+```{r}
+maternal_age <- df$Maternal_Age_Capped
+
+# Remove NA values to avoid computation errors
+maternal_age_clean <- na.omit(maternal_age)
+# Create a boxplot and add a title
+boxplot(maternal_age_clean, main="Boxplot for Maternal Age", ylab="Age")
+
+
+# Calculate the interquartile range (IQR)
+IQR_values <- IQR(df$Maternal_Age_Capped, na.rm = TRUE)
+
+# Calculate the bounds for outliers
+lower_bound <- quantile(df$Maternal_Age_Capped, 0.25, na.rm = TRUE) - 1.5 * IQR_values
+upper_bound <- quantile(df$Maternal_Age_Capped, 0.75, na.rm = TRUE) + 1.5 * IQR_values
+
+# Identify the outliers
+outliers <- df$Maternal_Age[df$Maternal_Age_Capped < lower_bound | df$Maternal_Age_Capped > upper_bound]
+
+# Calculate the percentage of outliers
+percentage_outliers <- length(outliers) / length(df$Maternal_Age_Capped[!is.na(df$Maternal_Age_Capped)]) * 100
+
+# Print the percentage of outliers
+print(paste("Percentage of outliers:", percentage_outliers))
+
+```
+
+```{r}
+
+# Define the breaks for age categories
+breaks <- seq(20, 45, by = 5)  # This creates age groups in 5-year intervals
+
+# Create age categories
+df$Age_Category <- cut(df$Maternal_Age_Capped,
+                       breaks = breaks,
+                       include.lowest = TRUE,
+                       right = FALSE,
+                       labels = paste(breaks[-length(breaks)], "-", breaks[-1]-1))
+
+# View the data frame with the new age category column
+head(df)
+
+# Count null values in the column 'Maternal_Age'
+null_count <- sum(is.na(df$Age_Category))
+
+# Print the result
+print(paste("Number of null values in the column 'Maternal_Age':", null_count))
+
+```
+
+
+
+```{r}
+# Update to check for NA and empty strings in Household_Income
+null_count <- sum(is.na(df$Household_Income) | df$Household_Income == "")
+null_count1 <- sum(is.na(df$Maternal_Education) | df$Maternal_Education == "")
+null_count2 <- sum(is.na(df$Delivery_Mode) | df$Delivery_Mode == "")
+null_count3 <- sum(is.na(df$NICU_Stay) | df$NICU_Stay == "")
+null_count4 <- sum(is.na(df$Edinburgh_Postnatal_Depression_Scale) | df$Edinburgh_Postnatal_Depression_Scale == "")
+
+# Print the result
+print(paste("Number of null values in the column 'Household_Income':", null_count))
+print(paste("Number of null values in the column 'Maternal_Education':", null_count1))
+print(paste("Number of null values in the column 'Deliver_Mode':", null_count2))
+print(paste("Number of null values in the column 'NICU_Stay':", null_count3))
+print(paste("Number of null values in the column 'Edinburgh_Postnatal_Depression_Scale':", null_count4))
+
+```
+
+```{r}
+library(ggplot2)
+
+# Create a temporary copy of the dataset to work with
+temp_df <- df
+
+# Remove rows where Household_Income is NULL or empty
+temp_df <- temp_df[!is.na(temp_df$Household_Income) & temp_df$Household_Income != " ", ]
+
+# Bar Graph to visualize Household Income
+ggplot(temp_df, aes(x = Household_Income)) +
+  geom_bar() +
+  labs(title = "Bar Graph of Household Income",
+       x = "Household Income",
+       y = "Frequency") +
+  theme_minimal()
+
+```
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(tidyr)
+
+# Replace NULL and empty strings with NA for consistency
+df$Household_Income <- as.character(df$Household_Income)  # Ensure the column is character for replacement
+df$Household_Income[df$Household_Income == ""] <- NA
+
+# Create a new column 'Household_Income_Cleaned' with existing non-NA values
+df$Household_Income_Cleaned <- df$Household_Income
+
+# Extract a sample from existing non-NA, non-empty income values
+valid_income_samples <- df$Household_Income[!is.na(df$Household_Income)]
+
+# Replace NA values with samples drawn randomly from the valid incomes
+set.seed(1989)  # Setting seed for reproducibility
+df$Household_Income_Cleaned[is.na(df$Household_Income_Cleaned)] <- sample(valid_income_samples, sum(is.na(df$Household_Income_Cleaned)), replace = TRUE)
+
+# Print the updated dataset with the new column
+head(df)
+summary(df$Household_Income_Cleaned)
+
+```
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+
+# Clean the data temporarily for visualization
+cleaned_data <- df$Maternal_Education
+cleaned_data[cleaned_data == "" | is.na(cleaned_data)] <- "Unknown"  # Replace empty and NA with "Unknown"
+
+# Create a table of counts for each category
+education_counts <- table(cleaned_data)
+
+# Plotting the bar graph
+bar_plot <- ggplot(data = data.frame(education_counts), aes(x = names(education_counts), y = Freq)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Bar Graph of Maternal Education", x = "Education Level", y = "Count") +
+  theme_minimal()
+
+# Display the bar graph
+print(bar_plot)
+
+# Plotting the pie chart
+pie_chart <- pie(education_counts, labels = names(education_counts), main = "Pie Chart of Maternal Education")
+
+# Display the pie chart
+print(pie_chart)
+
+```
+
+```{r}
+library(dplyr)    # for data manipulation
+library(ggplot2)  # for creating attractive plots
+
+set.seed(1989)   # for reproducibility
+
+
+# Replace empty strings with NA for consistent treatment
+df$Maternal_Education[df$Maternal_Education == ""] <- NA
+
+# Create a new column with cleaned data using random sampling from non-NA values
+df$Maternal_Education_Cleaned <- df$Maternal_Education
+
+# Replace NA values with random samples from the existing non-NA values
+df$Maternal_Education_Cleaned[is.na(df$Maternal_Education_Cleaned)] <- sample(
+  df$Maternal_Education[!is.na(df$Maternal_Education)],
+  sum(is.na(df$Maternal_Education_Cleaned)),
+  replace = TRUE
+)
+
+# Print the updated dataset
+head(df)
+null_count1 <- sum(is.na(df$Maternal_Education_Cleaned) | df$Maternal_Education_Cleaned == "")
+print(paste("Number of null values in the column 'Maternal_Education_Cleaned':", null_count1))
+
+# Create a table of counts for the cleaned data
+education_counts_cleaned <- table(df$Maternal_Education_Cleaned)
+
+# Convert the table object to a data frame for use with ggplot2
+education_data <- as.data.frame(education_counts_cleaned)
+names(education_data) <- c("Education", "Count")
+
+# Compute percentages for better label formatting in the pie chart
+education_data$Percentage <- education_data$Count / sum(education_data$Count) * 100
+
+# Create a pie chart using ggplot2
+ggplot_pie <- ggplot(education_data, aes(x = "", y = Percentage, fill = Education)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar(theta = "y") +  # Transforming the bar chart into a pie chart
+  theme_minimal() +
+  scale_fill_brewer(palette = "Pastel1") +  # Using a pleasant color palette
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank(),
+        plot.title = element_text(size = 14, face = "bold")) +
+  labs(fill = "Education Level",
+       title = "Pie Chart of Maternal Education After Cleaning") +
+  geom_text(aes(label = sprintf("%.1f%%", Percentage)), position = position_stack(vjust = 0.5))
+
+# Print the plot
+print(ggplot_pie)
+
+
+
+```
+
+```{r}
+# Load necessary library
+library(dplyr)
+library(ggplot2)
+
+# Update the Maternal_Education_Cleaned column to combine the categories
+df$Maternal_Education_Cleaned <- as.factor(df$Maternal_Education_Cleaned)
+
+df$Maternal_Education_Cleaned <- recode(df$Maternal_Education_Cleaned,
+  `Less than high school diploma` = "High School Diploma or less",
+  `High school diploma` = "High School Diploma or less")
+
+head(df)
+
+# Create a frequency table for the pie chart
+education_counts <- table(df$Maternal_Education_Cleaned)
+
+# Create the pie chart using ggplot2
+ggplot(data = as.data.frame(education_counts), aes(x = "", y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") +
+  theme_void() +
+  labs(fill = "Education Level", title = "Distribution of Maternal Education Levels") +
+  scale_fill_brewer(palette = "Pastel1")  # Adjust color palette as desired
+
+# Display the plot
+ggsave("Maternal_Education_Pie_Chart.png", width = 8, height = 8)
+
+```
+
+
+```{r}
+library(dplyr)
+
+# Print the number of null values and empty strings in Household_Income_Cleaned
+null_count <- sum(is.na(df$Household_Income_Cleaned))
+empty_string_count <- sum(df$Household_Income_Cleaned == "")
+
+# Print the counts
+cat("Number of NULL values: ", null_count, "\n")
+cat("Number of empty strings: ", empty_string_count, "\n")
+
+# Create a new column with redefined income categories
+df$Household_Income_Cleaned_Concise <- df$Household_Income_Cleaned %>% 
+  recode(`Less than $20,000` = "Less than $39,999",
+         `$20,000-39,999` = "Less than $39,999",
+         `$40,000-$69,999` = "$40,000-$99,999",
+         `$70,000-$99,999` = "$40,000-$99,999",
+         `$100,000-$124,999` = "$100,000-$149,999",
+         `$125,000-$149,999` = "$100,000-$149,999",
+         `$150,000-$174,999` = "$150,000-$199,999",
+         `$175,000-$199,999` = "$150,000-$199,999",
+         `$200,000+` = "$200,000+")
+
+head(df)
+summary(df$Household_Income_Cleaned_Concise)
+
+```
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Count null values and empty strings
+null_count <- sum(is.na(df$Household_Income_Cleaned) | df$Household_Income_Cleaned == "")
+
+# Print the count of nulls and empty strings
+print(paste("Number of null values and empty strings:", null_count))
+
+# Define a function to re-categorize income levels
+reclassify_income <- function(income) {
+  if (income %in% c("Less than $20, 000", "$20,000- $39,999")) {
+    return("Less than $39,999")
+  } else if (income %in% c("$40,000-$69,999", "$70,000-$99,999")) {
+    return("$40,000-$99,999")
+  } else if (income %in% c("$100,000 -$124,999", "$125,000- $149,999")) {
+    return("$1,00,000-$1,49,999")
+  } else if (income %in% c("$150,000 - $174,999", "$175,000- $199,999")) {
+    return("$1,50,000-$1,99,999")
+  } else if (income == "$200,000+") {
+    return("$200,000+")
+  } else {
+    return(NA)  # Return NA for incomes not in specified categories or undefined
+  }
+}
+
+# Apply the function to create a new column
+df$Household_Income_Cleaned_Concise <- sapply(df$Household_Income_Cleaned, reclassify_income)
+head(df)
+
+# Create a frequency table for the pie chart
+income_counts <- table(df$Household_Income_Cleaned_Concise)
+
+# Create the pie chart using ggplot2
+ggplot(data = as.data.frame(income_counts), aes(x = "", y = Freq, fill = Var1)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") +
+  theme_void() +
+  labs(fill = "Income Level", title = "Distribution of Household Income Levels") +
+  scale_fill_brewer(palette = "Set3")  # Adjust color palette as desired
+
+# Save the plot
+ggsave("Income_Distribution_Pie_Chart.png", width = 10, height = 10)
+
+```
+
+```{r}
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(1989)
+
+# Replace empty strings with NA for consistent handling
+df$Edinburgh_Postnatal_Depression_Scale[df$Edinburgh_Postnatal_Depression_Scale == ""] <- NA
+
+# Create a new column 'Edinburgh_Postnatal_Depression_Scale_Cleaned'
+# which initially copies all values from 'Edinburgh_Postnatal_Depression_Scale'
+df$Edinburgh_Postnatal_Depression_Scale_Cleaned <- df$Edinburgh_Postnatal_Depression_Scale
+
+# Replace NA values with random sampling from existing non-NA values
+df$Edinburgh_Postnatal_Depression_Scale_Cleaned[is.na(df$Edinburgh_Postnatal_Depression_Scale_Cleaned)] <- 
+  sample(df$Edinburgh_Postnatal_Depression_Scale_Cleaned[!is.na(df$Edinburgh_Postnatal_Depression_Scale_Cleaned)],
+         sum(is.na(df$Edinburgh_Postnatal_Depression_Scale_Cleaned)), replace = TRUE)
+
+# Print the updated dataset
+head(df)
+
+# Print the number of remaining null values and empty strings in the new column
+null_count <- sum(is.na(df$Edinburgh_Postnatal_Depression_Scale_Cleaned))
+empty_string_count <- sum(df$Edinburgh_Postnatal_Depression_Scale_Cleaned == "")
+
+# Output the counts
+cat("Number of null values in Edinburgh_Postnatal_Depression_Scale_Cleaned:", null_count, "\n")
+cat("Number of empty strings in Edinburgh_Postnatal_Depression_Scale_Cleaned:", empty_string_count, "\n")
+
+```
+
+```{r}
+
+# Create a new column with categorized depression levels
+df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise <- cut(
+  df$Edinburgh_Postnatal_Depression_Scale_Cleaned,
+  breaks = c(-Inf, 6, 13, 19, 30),
+  labels = c("None or minimal depression", "Mild depression", "Moderate depression", "Severe depression"),
+  right = TRUE # This ensures the interval is closed on the right: (6, 13]
+)
+
+# Print the dataset to check the new column
+head(df)
+print(table(df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise))
+
+```
+
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Check and summarize the data to see the frequency of each category
+category_summary <- table(df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise)
+
+# Create the pie chart
+pie_chart <- ggplot(data = as.data.frame(category_summary), aes(x = "", y = Freq, fill = Var1)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  theme_void() +
+  labs(fill = "Depression Level",
+       title = "Distribution of Depression Levels",
+       subtitle = "Based on Edinburgh Postnatal Depression Scale")
+
+# Print the pie chart
+print(pie_chart)
+
+```
+
+# 2. Exploratory Data Analysis
+```{r}
+# Create bar graphs to show the distribution of each categorical variable
+
+# Bar graph for 'Maternal_Age' categories
+ggplot(df, aes(x = Age_Category)) +
+  geom_bar(fill = "cornflowerblue") +
+  labs(title = "Bar Graph of Capped Maternal Age Categories", x = "Age Category", y = "Count")
+
+# Bar graph for 'Maternal_Age' categories
+ggplot(df, aes(x = Maternal_Age_Capped)) +
+  geom_bar(fill = "cornflowerblue") +
+  labs(title = "Bar Graph of Capped Maternal Age ", x = "Age", y = "Count")
+
+
+# Bar graph for 'Household_Income' categories
+ggplot(df, aes(x = Household_Income_Cleaned_Concise)) +
+  geom_bar(fill = "skyblue") +
+  labs(title = "Bar Graph of Cleaned Household Income Categories", x = "Income Category", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Bar graph for 'Maternal_Education' categories
+ggplot(df, aes(x = Maternal_Education_Cleaned)) +
+  geom_bar(fill = "coral") +
+  labs(title = "Bar Graph of Cleaned Maternal Education Categories", x = "Education Level", y = "Count")
+
+# Bar graph for 'Depression levels'
+ggplot(df, aes(x = Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise )) +
+  geom_bar(fill = "coral") +
+  labs(title = "Bar Graph of categorical depression levels", x = "Depression levels", y = "Count")
+
+# Bar graph for 'Depression levels'
+ggplot(df, aes(x = Edinburgh_Postnatal_Depression_Scale_Cleaned )) +
+  geom_bar(fill = "coral") +
+  labs(title = "Bar Graph of numeric depression levels", x = "Depression levels", y = "Count")
+
+```
+
+
+
+
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+
+# Plot segmented bar graph
+ggplot(df, aes(x = Age_Category, fill = Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise)) +
+  geom_bar(position = "stack") +
+  labs(x = "Age Category", y = "Count", fill = "Depression Scale") +
+  ggtitle("Segmented Bar Graph of Age Category vs. Depression Scale")
+
+```
+```{r}
+library(ggplot2)
+
+# Plot segmented bar graph with increased space between bars
+ggplot(df, aes(x = Household_Income_Cleaned_Concise, fill = Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise)) +
+  geom_bar(position = position_dodge(width = 0.8), color = "black") +  # Increase space between bars
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")) + # Customizing fill colors
+  labs(x = "Household Income", y = "Proportion", fill = "Depression Scale") +
+  ggtitle("Segmented Bar Graph of Household Income vs. Depression Scale")
+
+```
+```{r}
+# Load necessary libraries
+library(ggplot2)
+
+
+# Plot segmented bar graph with spacious labels
+ggplot(df, aes(x = Maternal_Education_Cleaned, fill = Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise)) +
+  geom_bar(position = "fill", color = "black") +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")) + # Customizing fill colors
+  
+  labs(x = "Maternal Education", y = "Proportion", fill = "Depression Scale") +
+  ggtitle("Segmented Bar Graph of Maternal Education vs. Depression Scale") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate x-axis labels
+
+```
+
+# 3. Statistical Testing
+
+```{r}
+# Create bar graphs to show the distribution of each categorical variable
+
+# Bar graph for 'Maternal_Age' categories
+ggplot(df, aes(x = Age_Category)) +
+  geom_bar(fill = "cornflowerblue") +
+  labs(title = "Bar Graph of Capped Maternal Age Categories", x = "Age Category", y = "Count")
+
+# Bar graph for 'Maternal_Age' categories
+ggplot(df, aes(x = Maternal_Age_Capped)) +
+  geom_bar(fill = "cornflowerblue") +
+  labs(title = "Bar Graph of Capped Maternal Age ", x = "Age", y = "Count")
+
+
+# Bar graph for 'Household_Income' categories
+ggplot(df, aes(x = Household_Income_Cleaned_Concise)) +
+  geom_bar(fill = "skyblue") +
+  labs(title = "Bar Graph of Cleaned Household Income Categories", x = "Income Category", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Bar graph for 'Maternal_Education' categories
+ggplot(df, aes(x = Maternal_Education_Cleaned)) +
+  geom_bar(fill = "coral") +
+  labs(title = "Bar Graph of Cleaned Maternal Education Categories", x = "Education Level", y = "Count")
+
+# Bar graph for 'Depression levels'
+ggplot(df, aes(x = Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise )) +
+  geom_bar(fill = "coral") +
+  labs(title = "Bar Graph of categorical depression levels", x = "Depression levels", y = "Count")
+
+# Bar graph for 'Depression levels'
+ggplot(df, aes(x = Edinburgh_Postnatal_Depression_Scale_Cleaned )) +
+  geom_bar(fill = "coral") +
+  labs(title = "Bar Graph of numeric depression levels", x = "Depression levels", y = "Count")
+
+```
+```{r}
+# Load necessary library
+library(stats)
+
+# Performing Kolmogorov-Smirnov Test for normality on 'Maternal_Age_Capped'
+ks_test_age <- ks.test(df$Maternal_Age_Capped, "pnorm", mean = mean(df$Maternal_Age_Capped), sd = sd(df$Maternal_Age_Capped))
+
+# Performing Kolmogorov-Smirnov Test for normality on 'Edinburgh_Postnatal_Depression_Scale_Cleaned'
+ks_test_depression <- ks.test(df$Edinburgh_Postnatal_Depression_Scale_Cleaned, "pnorm", mean = mean(df$Edinburgh_Postnatal_Depression_Scale_Cleaned), sd = sd(df$Edinburgh_Postnatal_Depression_Scale_Cleaned))
+
+# Print the results
+print(ks_test_age)
+print(ks_test_depression)
+
+```
+
+```{r}
+# Chi-squared tests to explore the association between categorical predictors and EPDS category
+# Fisher's exact test with Monte Carlo simulation
+
+# Fisher's exact test with Monte Carlo simulation
+fisher_test_age <- fisher.test(table(df$Age_Category, df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise), simulate.p.value = TRUE)
+print(fisher_test_age)
+
+# Test between 'Maternal Age' and EPDS categories
+chisq_test_age <- chisq.test(table(df$Age_Category, df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise))
+print(chisq_test_age)
+
+# Test between 'Household_Income' and EPDS categories
+chisq_test_income <- chisq.test(table(df$Household_Income_Cleaned_Concise, df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise))
+print(chisq_test_income)
+# Test between 'Maternal_Education' and EPDS categories
+chisq_test_education <- chisq.test(table(df$Maternal_Education_Cleaned, df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise))
+print(chisq_test_education)
+
+
+```
+
+
+```{r}
+
+
+# Load necessary library
+library(ggplot2)
+
+
+# Step 1: Fit the linear regression model
+model <- lm(Edinburgh_Postnatal_Depression_Scale_Cleaned ~ Maternal_Age_Capped, data = df)
+
+# Step 2: Check residuals for linearity and constant variability
+par(mfrow = c(2, 2))  # Set the graphics layout to see multiple plots
+plot(model)  # This generates four plots, including residuals vs fitted (for linearity and homoscedasticity)
+
+# Step 3: Check for normality of residuals
+residuals <- residuals(model)
+hist(residuals, main = "Histogram of Residuals", xlab = "Residuals", breaks = "Sturges", col = "lightblue")
+qqnorm(residuals, main = "Q-Q Plot of Residuals")
+qqline(residuals)
+
+# Step 4: Summary of the model
+summary(model)
+
+
+```
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+
+set.seed(1989)
+
+# Create a temporary dataset with only the required columns
+temp_df <- df[, c("Age_Category", "Household_Income_Cleaned_Concise", "Maternal_Education_Cleaned", "Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise")]
+
+# Convert categorical variables to factors with specified levels
+temp_df$Age_Category <- factor(temp_df$Age_Category, levels = c("20 - 24", "25 - 29", "30 - 34", "35 - 39", "40 - 44"))
+temp_df$Household_Income_Cleaned_Concise <- factor(temp_df$Household_Income_Cleaned_Concise, levels = c("Less than $39,999" , "$40,000-$99,999" , "$1,00,000-$1,49,999" , "$1,50,000-$1,99,999" , "$200,000+"))
+temp_df$Maternal_Education_Cleaned <- factor(temp_df$Maternal_Education_Cleaned, levels = c("High School Diploma or less", "College/trade school", "Undergraduate degree", "Masters degree", "Doctoral Degree"))
+temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise <- factor(temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise, levels = c("None or minimal depression", "Mild depression", "Moderate depression", "Severe depression"))
+
+# Convert factors to numeric
+temp_df <- mutate_at(temp_df, vars(-Age_Category), as.numeric)
+temp_df <- mutate_at(temp_df, vars(-Household_Income_Cleaned_Concise), as.numeric)
+temp_df <- mutate_at(temp_df, vars(-Maternal_Education_Cleaned), as.numeric)
+temp_df <- mutate_at(temp_df, vars(- Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise), as.numeric)
+
+
+# Rename the columns for better clarity in the heatmap
+names(temp_df) <- c("Age", "Income", "Education", "Depression Level")
+
+# Compute the correlation matrix
+cor_matrix <- cor(temp_df, use = "complete.obs")
+
+# Melt the correlation matrix for ggplot2
+melted_cor_matrix <- melt(cor_matrix)
+
+# Create the heatmap
+ggplot(melted_cor_matrix, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 10),
+        axis.text.y = element_text(size = 10)) +
+  labs(x = "", y = "", fill = "Correlation", title = "Correlation Heatmap") +
+  coord_fixed()
+
+```
+
+
+
+
+
+```{r}
+# Load necessary libraries
+
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(corrr)  # for enhanced correlation analysis and visualization
+
+
+# Create a temporary dataset with only the required columns
+temp_df <- df[, c("Age_Category", "Household_Income_Cleaned_Concise", "Maternal_Education_Cleaned", "Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise")]
+
+# Convert categorical variables to factors with specified levels
+temp_df$Age_Category <- factor(temp_df$Age_Category, levels = c("20 - 24", "25 - 29", "30 - 34", "35 - 39", "40 - 44"))
+temp_df$Household_Income_Cleaned_Concise <- factor(temp_df$Household_Income_Cleaned_Concise, levels = c("Less than $39,999" , "$40,000-$99,999" , "$1,00,000-$1,49,999" , "$1,50,000-$1,99,999" , "$200,000+"))
+temp_df$Maternal_Education_Cleaned <- factor(temp_df$Maternal_Education_Cleaned, levels = c("High School Diploma or less", "College/trade school", "Undergraduate degree", "Masters degree", "Doctoral Degree"))
+temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise <- factor(temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise, levels = c("None or minimal depression", "Mild depression", "Moderate depression", "Severe depression"))
+
+# Convert factors to numeric
+temp_df <- mutate_at(temp_df, vars(-Age_Category), as.numeric)
+temp_df <- mutate_at(temp_df, vars(-Household_Income_Cleaned_Concise), as.numeric)
+temp_df <- mutate_at(temp_df, vars(-Maternal_Education_Cleaned), as.numeric)
+temp_df <- mutate_at(temp_df, vars(- Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise), as.numeric)
+
+# Rename the columns for better clarity in the analysis
+names(temp_df) <- c("Age", "Income", "Education", "Depression Level")
+
+# Compute the correlation matrix
+cor_matrix <- cor(temp_df, use = "complete.obs")
+
+# Print the correlation matrix in a cleaner format
+cor_matrix <- as.data.frame(cor_matrix)
+print(cor_matrix)
+
+# Visualizing the correlation matrix using 'corrr' package for a better analysis view
+cor_matrix %>%
+  as_cordf() %>%
+  rearrange() %>%
+  fashion()
+
+# Optionally, create a more visually appealing plot of the matrix
+cor_plot <- cor_matrix %>%
+  as_cordf() %>%
+  rearrange() %>%
+  rplot()
+
+print(cor_plot)
+
+
+
+
+```
+
+
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+
+# Temporary dataset with only the required columns
+temp_df <- df[, c("Age_Category", "Household_Income_Cleaned_Concise", "Maternal_Education_Cleaned", "Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise")]
+# Convert categorical variables to factors with specified levels
+temp_df$Age_Category <- factor(temp_df$Age_Category, levels = c("20 - 24", "25 - 29", "30 - 34", "35 - 39", "40 - 44"))
+temp_df$Household_Income_Cleaned_Concise <- factor(temp_df$Household_Income_Cleaned_Concise, levels = c("Less than $39,999" , "$40,000-$99,999" , "$1,00,000-$1,49,999" , "$1,50,000-$1,99,999" , "$200,000+"))
+temp_df$Maternal_Education_Cleaned <- factor(temp_df$Maternal_Education_Cleaned, levels = c("High School Diploma or less", "College/trade school", "Undergraduate degree", "Masters degree", "Doctoral Degree"))
+temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise <- factor(temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise, levels = c("None or minimal depression", "Mild depression", "Moderate depression", "Severe depression"))
+
+# Perform Spearman correlation test for Age_Category and Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise
+cor_age_depression <- cor.test(as.numeric(temp_df$Age_Category), as.numeric(temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise), method = "spearman")
+
+# Perform Spearman correlation test for Household_Income_Cleaned_Concise and Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise
+cor_income_depression <- cor.test(as.numeric(temp_df$Household_Income_Cleaned_Concise), as.numeric(temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise), method = "spearman")
+
+# Perform Spearman correlation test for Maternal_Education_Cleaned and Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise
+cor_education_depression <- cor.test(as.numeric(temp_df$Maternal_Education_Cleaned), as.numeric(temp_df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise), method = "spearman")
+
+# Print correlation coefficients and p-values
+print("Correlation between Age Category and Edinburgh Postnatal Depression Scale:")
+print(cor_age_depression)
+print("Correlation between Household Income and Edinburgh Postnatal Depression Scale:")
+print(cor_income_depression)
+print("Correlation between Maternal Education and Edinburgh Postnatal Depression Scale:")
+print(cor_education_depression)
+
+```
+```{r}
+# Load necessary libraries
+library(ggplot2)
+
+# Create a dataframe for correlation results
+cor_results <- data.frame(
+  Variable = c("Age Category", "Household Income", "Maternal Education"),
+  Correlation = c(cor_age_depression$estimate, cor_income_depression$estimate, cor_education_depression$estimate),
+  P_Value = c(cor_age_depression$p.value, cor_income_depression$p.value, cor_education_depression$p.value)
+)
+
+# Create a bar plot for correlation coefficients
+cor_bar_plot <- ggplot(cor_results, aes(x = Variable, y = Correlation, fill = Variable)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.5) +
+  labs(title = "Spearman's Rank Correlation Coefficients",
+       x = "Variable",
+       y = "Correlation Coefficient") +
+  theme_minimal()
+
+
+
+# Print both plots
+print(cor_bar_plot)
+
+```
+
+
+
+
+
+
+
+```{r}
+library(MASS)
+library(ggplot2)
+library(broom)  # For tidying model outputs
+
+# Convert variables to factors as appropriate
+df$Age_Category <- factor(df$Age_Category)
+df$Household_Income_Cleaned_Concise <- factor(df$Household_Income_Cleaned_Concise)
+df$Maternal_Education_Cleaned <- factor(df$Maternal_Education_Cleaned)
+df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise <- factor(df$Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise, ordered = TRUE)
+
+# Fit the ordinal logistic regression model
+model_ordinal <- polr(Edinburgh_Postnatal_Depression_Scale_Cleaned_Concise ~ Age_Category + Household_Income_Cleaned_Concise + Maternal_Education_Cleaned, data = df, Hess = TRUE)
+
+# Tidy the model output for easier manipulation and plotting
+tidy_model <- tidy(model_ordinal)
+
+summary(tidy_model)
+
+# Creating a plot of coefficients with confidence intervals
+ggplot(tidy_model, aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
+  coord_flip() +  # Flip coordinates for easier reading of term names
+  labs(x = "Predictor Variables", y = "Coefficient Estimate",
+       title = "Coefficient Estimates and Confidence Intervals") +
+  theme_minimal()
+
+# Create a residuals plot to evaluate model fit
+residuals_df <- data.frame(residuals = residuals(model_ordinal))
+ggplot(residuals_df, aes(x = residuals)) +
+  geom_histogram(bins = 30, fill = "blue", color = "black") +
+  labs(x = "Residuals", y = "Frequency", title = "Histogram of Residuals")
+```
+
